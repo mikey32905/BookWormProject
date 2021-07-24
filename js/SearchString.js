@@ -72,7 +72,6 @@ function getDocStats(fileContent) {
 
     docLength.innerText = "Document Length: " + text.length;
     wordCount.innerText = "Word Count: " + wordArray.length;
-    //charCount.innerText = "Character Count: " + 
 }
 
 function ULTemplate(items, element) {

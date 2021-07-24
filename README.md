@@ -1,2 +1,2 @@
 # NotaryProject
- Js follow along project
+ Js follow along project via Youtube.
