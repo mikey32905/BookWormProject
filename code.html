@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en" class="h-100">
+
+    <head>
+        <title>NOTARY: A Coding Project by Mike Williams</title>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <script src="https://kit.fontawesome.com/5db21ba9c6.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="/css/prism.css" >
+        <link rel="icon" type="image/png" href="/img/favicon(3)-40x40.png">
+
+    </head>
+
+    <body class="d-flex flex-column h-100">
+        <!--Nav Section-->
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#"><img src="img/MikeWilliams(4)-Mark.png" clas="d-inline-block align-text-top" width="30" height="24"> NOTARY</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="app.html">The App</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="code.html">The Code</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" target="_blank" href="https://github.com/mikey32905/NotaryProject">Git Repo</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" target="_blank" href="https://mw-portfoliopage.netlify.app/">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!--Main Section-->
+        <main class="flex-shrink-0">
+            <div class="container py-4 px-5 mt-5">
+                <h2 class="border-1 border-bottom border-dark">The Code for Notary.</h2>
+                <div class="row row-cols-1 row-cols-lg-2">
+                    <!--Code Embed-->
+                    <!--Paste Javascript code between <code> </code>-->
+                    <div class="col-lg-8">
+                        <pre class="line-numbers"><code class="language-javascript">                          
+                            //Load a book from disk
+                            function loadBook(fileName,displayName){
+                                let currentBook = "";
+                                let url = "/books/" + fileName;
+                            
+                                //reset our UI
+                                document.getElementById("fileName").innerHTML = displayName;
+                                document.getElementById("searchstat").innerHTML = "";
+                                document.getElementById("keyword").value = "";
+                            
+                                //create a server request to load our book
+                                var xhr = new XMLHttpRequest();
+                                xhr.open("GET", url, true);
+                                xhr.send();
+                            
+                                xhr.onreadystatechange = function () {
+                                    if (xhr.readyState == 4 && xhr.status == 200) {
+                                        currentBook = xhr.responseText;
+                            
+                                        getDocStats(currentBook);
+                            
+                                        //remove line breaks and carriage returns and replace with a <br>
+                                        currentBook = currentBook.replace(/(?:\r\n|\r|\n)/g, '<br>');
+                            
+                                        document.getElementById("fileContent").innerHTML = currentBook;
+                            
+                                        var elmnt = document.getElementById("fileContent");
+                                        elmnt.scrolltop = 0;
+                                    }
+                                };
+                            
+                            }
+                            
+                            //get the stats for the book
+                            function getDocStats(fileContent) {
+                                var docLength = document.getElementById("docLength");
+                                var wordCount = document.getElementById("wordCount");
+                                var charCount = document.getElementById("charCount");
+                            
+                                let text = fileContent.toLowerCase();
+                                let wordArray = text.match(/\b\S+\b/g);
+                                let wordDictionary = {};
+                            
+                                var uncommonWords = [];
+                            
+                                //filter out uncommon words
+                                uncommonWords = filterStopWords(wordArray);
+                            
+                                //count every word in wordArray
+                                for (let word in uncommonWords) {
+                                    let wordValue = uncommonWords[word];
+                            
+                                    if (wordDictionary[wordValue] > 0) {
+                                        wordDictionary[wordValue] += 1;
+                                    }
+                                    else {
+                                        wordDictionary[wordValue] = 1;
+                                    }
+                                }
+                            
+                                //sort the array
+                                let wordList = sortProperties(wordDictionary);
+                            
+                                //Return top 5 words
+                                var top5Words = wordList.slice(0, 6);
+                            
+                                //return least5 words
+                                var least5Words = wordList.slice(-6, wordList.length);
+                            
+                                //write to page
+                                ULTemplate(top5Words, document.getElementById("mostUsed"));
+                                ULTemplate(least5Words, document.getElementById("leastUsed"));
+                            
+                                docLength.innerText = "Document Length: " + text.length;
+                                wordCount.innerText = "Word Count: " + wordArray.length;
+                            }
+                            
+                            function ULTemplate(items, element) {
+                                let rowTemplate = document.getElementById('template-ul-items');
+                                let templateHTML = rowTemplate.innerHTML;
+                                let resultsHTML = "";
+                            
+                                for (i = 0; i < items.length - 1; i++) {
+                                    resultsHTML += templateHTML.replace('{{val}}', items[i][0] + " : " + items[i][1] + " time(s)");
+                                }
+                            
+                                element.innerHTML = resultsHTML;
+                            }
+                            
+                            function sortProperties(obj) {
+                                //first convert the obj to array
+                                let rtnArray = Object.entries(obj);
+                            
+                                //Sort the array
+                                rtnArray.sort(function (first, second) {
+                                    return second[1] - first[1];
+                                });
+                            
+                                return rtnArray;
+                            }
+                            
+                            //a list of stop words we don't want to include in stats
+                            function getStopWords() {
+                                return ["a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an", "and", "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot", "could", "dear", "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get", "got", "had", "has", "have", "he", "her", "hers", "him", "his", "how", "however", "i", "if", "in", "into", "is", "it", "its", "just", "least", "let", "like", "likely", "may", "me", "might", "most", "must", "my", "neither", "no", "nor", "not", "of", "off", "often", "on", "only", "or", "other", "our", "own", "rather", "said", "say", "says", "she", "should", "since", "so", "some", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "tis", "to", "too", "twas", "us", "wants", "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why", "will", "with", "would", "yet", "you", "your", "ain't", "aren't", "can't", "could've", "couldn't", "didn't", "doesn't", "don't", "hasn't", "he'd", "he'll", "he's", "how'd", "how'll", "how's", "i'd", "i'll", "i'm", "i've", "isn't", "it's", "might've", "mightn't", "must've", "mustn't", "shan't", "she'd", "she'll", "she's", "should've", "shouldn't", "that'll", "that's", "there's", "they'd", "they'll", "they're", "they've", "wasn't", "we'd", "we'll", "we're", "weren't", "what'd", "what's", "when'd", "when'll", "when's", "where'd", "where'll", "where's", "who'd", "who'll", "who's", "why'd", "why'll", "why's", "won't", "would've", "wouldn't", "you'd", "you'll", "you're", "you've"];
+                            }
+                            
+                            function filterStopWords(wordArray) {
+                                var commonWords = getStopWords();
+                                var commonObj = {};
+                                var uncommonArray = [];
+                            
+                                for (i = 0; i < commonWords.length; i++) {
+                                    commonObj[commonWords[i].trim()] = true;
+                                }
+                            
+                                for (i = 0; i < wordArray.length; i++) {
+                                    word = wordArray[i].trim().toLowerCase();
+                                    if (!commonObj[word]) {
+                                        uncommonArray.push(word);
+                                    }
+                                }
+                            
+                                return uncommonArray;
+                            }
+                            
+                            //highlight the words in search
+                            function performMark() {
+                                //read keyword
+                                var keyword = document.getElementById("keyword").value;
+                                var display = document.getElementById("fileContent");
+                            
+                                var newContent = "";
+                            
+                                //find all currently marked items
+                                let spans = document.querySelectorAll('mark');
+                            
+                                //<mark></mark>
+                                for (var i = 0; i < spans.length; i++) {
+                                    spans[i].outerHTML = spans[i].innerHTML;
+                                }
+                            
+                                var re = new RegExp(keyword, "gi");
+                                var replaceText = "<mark id='markme'>$&</mark>"
+                                var bookContent = display.innerHTML;
+                            
+                                //add mark to book content
+                                newContent = bookContent.replace(re, replaceText);
+                            
+                                display.innerHTML = newContent;
+                                var count = document.querySelectorAll('mark').length;
+                            
+                                document.getElementById("searchstat").innerHTML = "found " + count + " matches";
+                            
+                                if (count > 0) {
+                                    var element = document.getElementById("markme");
+                                    element.scrollIntoView();
+                                }
+                            }
+                        </code>
+                        </pre>
+                    </div>
+
+                    <!--Description-->
+                    <div class="col-lg-4">
+                        <img src="/img/NotaryLogo.png" class="img-fluid center-block d-block ax-auto" alt="App logo" width="700" height="500">
+                        <p class="codeWriteup">The code is structured in six functions.</p>
+                        <h5>loadBook</h5>
+                        <p class="codeWriteup">This function gets the fileName and displayName from the selected file.  It will load 
+                            the file text into the display textbox.  Special characters, such as carriage return, line feed, and nulls, 
+                            are removed via a regex match.
+                        </p>
+                        <h5>getDocStats</h5>
+                        <p class="codeWriteup">This function gets the word count and page count from the loaded
+                            book file and displays the results in the stats box.
+                        </p>
+                        <h5>ULTemplate</h5>
+                        <p class="codeWriteup">This function, via a template, is used to display the stats lines in the most and least 
+                            used words stat boxes.
+                        </p>
+                        <h5>sortProperties</h5>
+                        <p class="codeWriteup">This function sorts the words found in the text based on number of times found.</p>
+                        <h5>getStopWords</h5>
+                        <p class="codeWriteup">This function returns a list of words not to include in word search count. </p>
+                        <h5>filterStopWords</h5>
+                        <p class="codeWriteup">This function sorts the stop words, from retrieved list, from words found in book, to 
+                            exclude from word count.
+                        </p>
+                        <h5>performMark</h5>
+                        <p class="codeWriteup">This function works in conjunction with the search box.  When entered word is found,
+                            this function will highlight the found word.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!--Footer Section-->
+        <footer class="footer mt-auto py-3 sticky-footer">
+            <div class="container-fluid">
+                <div class="row row-cols-1 row-cols-lg-3 gy-2 ">
+                    <div class="col d-flex order-last order-lg-first text-light align-content-center">
+                        <div><span class="text-muted ">&copy;2021</span> Mike Williams | mikey32905@1791.com</div>
+                    </div>
+                    <div class="col d-flex align-content-center justify-content-start justify-content-lg-center">
+                        <img src="/img/MikeWilliams(2)-Blk.png" alt="Mike Williams Logo" height="40">
+                    </div>
+                    <div class="col d-flex align-items-center justify-content-start justify-content-lg-end">
+                        <div class="row">
+                            <div class="col social"><a href="https://www.linkedin.com/in/mike-williams-0511835/" target="_blank"><i class="fa fa-linkedin fa-2x"></i></a> </div>
+                            <div class="col social"><a href="https://github.com/mikey32905" target="_blank"><i class="fa fa-github fa-2x"></i> </a> </div>
+                            <div class="col social"><a href="https://twitter.com/mikey32905" target="_blank"><i class="fa fa-twitter fa-2x"></i></a> </div>
+                        </div>
+                    </div>
+                </div>
+            
+            </div>
+        </footer>
+
+            <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+            integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous">
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+            integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous">
+        </script>
+
+        <script src="js/prism.js"></script>
+        <script>
+            Prism.plugins.NormalizeWhitespace.setDefaults({
+            'remove-trailing': true,
+            'remove-indent': true,
+            'left-trim': true,
+            'right-trim': true
+            })
+        </script>
+    </body>
+</html>

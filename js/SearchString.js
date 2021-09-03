@@ -1,7 +1,7 @@
 //Load a book from disk
 function loadBook(fileName,displayName){
     let currentBook = "";
-    let url = "books/" + fileName;
+    let url = "/books/" + fileName;
 
     //reset our UI
     document.getElementById("fileName").innerHTML = displayName;
@@ -28,6 +28,7 @@ function loadBook(fileName,displayName){
             elmnt.scrolltop = 0;
         }
     };
+
 }
 
 //get the stats for the book
